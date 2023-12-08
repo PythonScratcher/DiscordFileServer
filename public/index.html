@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiscordFileServer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #loading {
+      font-size: 24px;
+      color: #4CAF50;
+      margin-bottom: 20px;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>DiscordFileServer</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="file" id="fileInput" />
+      <button type="button" onclick="uploadFile()">Upload</button>
+    </form>
+    <div id="loading" class="hidden"><p><b>Loading...</b> <small>this may take a while</small></p></div>
+    <div id="result"></div>
+  </div>
+  <script>
+    async function uploadFile() {
+      const formData = new FormData(document.getElementById('uploadForm'));
+
+      try {
+        // Display loading message
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('result').innerHTML = '';
+
+        const response = await axios.post('/upload', formData);
+
+        if (response.data.loading) {
+          // Still loading, wait for the next update
+          setTimeout(() => checkUploadStatus(response.data.fileUrl), 1000);
+        } else {
+          // Hide loading message and display file URL
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('result').innerHTML = `<p>File URL: <a href="${response.data.fileUrl}" target="_blank">${response.data.fileUrl}</a></p>`;
+        }
+      } catch (error) {
+        console.error(error);
+
+        // Hide loading message and display error message
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('result').innerHTML = `<p>Error: ${error.response.data.error}</p>`;
+      }
+    }
+
+    async function checkUploadStatus(fileUrl) {
+      try {
+        const response = await axios.get('/status');
+
+        if (response.data.loading) {
+          // Still loading, wait for the next update
+          setTimeout(() => checkUploadStatus(fileUrl), 1000);
+        } else {
+          // Hide loading message and display file URL
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('result').innerHTML = `<p>File URL: <a href="${fileUrl}" target="_blank">${fileUrl}</a></p>`;
+        }
+      } catch (error) {
+        console.error(error);
+
+        // Hide loading message and display error message
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('result').innerHTML = `<p>Error: ${error.response.data.error}</p>`;
+      }
+    }
+  </script>
+</body>
+
+</html>
