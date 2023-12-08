@@ -4,7 +4,7 @@ DiscordFileServer is a simple tool that allows you to host files up to 25MB on D
 
 ## License
 
-This project is licensed under the [Your Name License](LICENSE). See the [LICENSE](LICENSE) file for details.
+This project is licensed under the [CC0 1.0](LICENSE). See the [LICENSE](LICENSE) file for details.
 
 ## Features
 
