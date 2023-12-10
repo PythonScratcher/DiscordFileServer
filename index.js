@@ -3,6 +3,7 @@ const multer = require('multer');
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const cors = require('cors'); // Import the cors middleware
 
 const app = express();
 const port = 3000;
@@ -16,6 +17,7 @@ const upload = multer({ storage: storage });
 
 app.use(express.static('public'));
 app.use(express.json());
+app.use(cors()); // Enable CORS for all routes
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -31,18 +33,16 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
     fs.appendFileSync(stringsFilePath, randomString + '\n');
 
-    const domain = `${req.protocol}://${req.get('host')}`;
-
     res.json({
       success: true,
       messageId,
       randomString,
-      fileUrl: `${domain}/files/${randomString}`,
+      fileUrl: `//${req.get('host')}/files/${randomString}`,
       originalname: req.file.originalname,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Failed to send file to Discord.' });
+    res.status(500).json({ success: false, error: 'Failed to upload file.' });
   }
 });
 
