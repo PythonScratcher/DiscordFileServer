@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+  <!-- made by pythonscratcher https://pythonscratcher.eu.org -->
 
 <head>
   <meta charset="UTF-8">
@@ -10,16 +11,17 @@
       margin: 0;
       padding: 0;
       font-family: 'Roboto', sans-serif;
-      background-color: #f5f5f5;
+      background-color: #121212; /* Dark background color */
+      color: #fff; /* Light text color */
     }
 
     .container {
       max-width: 600px;
       margin: 50px auto;
       padding: 20px;
-      background-color: #fff;
+      background-color: #1f1f1f; /* Dark container background color */
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
       text-align: center;
     }
 
@@ -27,8 +29,11 @@
       margin-bottom: 20px;
     }
 
+
+
+    /* Style for the Upload button */
     button {
-      background-color: #4CAF50;
+      background-color: #2196F3; /* Blue color for the Upload button */
       color: #fff;
       padding: 10px 15px;
       border: none;
@@ -37,17 +42,23 @@
     }
 
     button:hover {
-      background-color: #45a049;
+      background-color: #0e77ca; /* Darker blue color on hover */
     }
 
     .hidden {
       display: none;
     }
 
+    /* Style for the Loading text */
     #loading {
       font-size: 24px;
-      color: #4CAF50;
+      color: #2196F3; /* Blue color for the Loading text */
       margin-bottom: 20px;
+    }
+
+    #cooldown {
+      color: #FF9800; /* Orange color for countdown */
+      margin-top: 10px;
     }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -57,21 +68,38 @@
 <body>
   <div class="container">
     <h1>DiscordFileServer</h1>
+    <p>Max 25MB</p>
     <form id="uploadForm" enctype="multipart/form-data">
       <input type="file" name="file" id="fileInput" />
       <button type="button" onclick="uploadFile()">Upload</button>
     </form>
-    <div id="loading" class="hidden"><p><b>Loading...</b> <small>this may take a while</small></p></div>
+    <div id="loading" class="hidden"><p><img src="loading.gif" width="50px"><b>Uploading...</b> <small>this may take a while</small></p></div>
+    <div id="cooldown" class="hidden"></div>
     <div id="result"></div>
   </div>
   <script>
+    let lastUploadTime = 0; // Variable to store the last upload time
+    const cooldownDuration = 15; // Cooldown duration in seconds
+
     async function uploadFile() {
+      const currentTime = Date.now();
+
+      // Check if cooldown is active
+      if (currentTime - lastUploadTime < cooldownDuration * 1000) {
+        displayCooldown(currentTime);
+        return;
+      }
+
       const formData = new FormData(document.getElementById('uploadForm'));
 
       try {
+        // Update the last upload time
+        lastUploadTime = currentTime;
+
         // Display loading message
         document.getElementById('loading').classList.remove('hidden');
         document.getElementById('result').innerHTML = '';
+        document.getElementById('cooldown').classList.add('hidden');
 
         const response = await axios.post('/upload', formData);
 
@@ -111,6 +139,24 @@
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('result').innerHTML = `<p>Error: ${error.response.data.error}</p>`;
       }
+    }
+
+    function displayCooldown(currentTime) {
+      const remainingTime = Math.ceil((lastUploadTime + cooldownDuration * 1000 - currentTime) / 1000);
+      document.getElementById('cooldown').innerHTML = `<p>Cooldown: ${remainingTime} seconds</p>`;
+      document.getElementById('cooldown').classList.remove('hidden');
+
+      // Update the countdown every second
+      const countdownInterval = setInterval(() => {
+        const remainingTime = Math.ceil((lastUploadTime + cooldownDuration * 1000 - Date.now()) / 1000);
+        document.getElementById('cooldown').innerHTML = `<p>Cooldown: ${remainingTime} seconds</p>`;
+
+        // If cooldown is over, hide the countdown
+        if (remainingTime <= 0) {
+          clearInterval(countdownInterval);
+          document.getElementById('cooldown').classList.add('hidden');
+        }
+      }, 1000);
     }
   </script>
 </body>
